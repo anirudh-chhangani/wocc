@@ -1,22 +1,28 @@
+import os
 from vibora import Vibora, client
 from vibora.responses import JsonResponse
 from aiocache import cached, MemcachedCache
-
+from aiocache.serializers import JsonSerializer
 app = Vibora()
 
+FIXER_URI = "https://data.fixer.io/api/latest?access_key={}&base=USD"
+API_KEY = os.environ("FIXER_API_KEY")
 
-@cached()
+URI = FIXER_URI.format(API_KEY)
+
+
+@cached(ttl=86500, cache=MemcachedCache, serializer=JsonSerializer(), namespace="wocc")
 async def fetch_currency_data():
-    response = await client.get('https://google.com/')
+    return await client.get(URI)
 
 
 def convert_currency(sourceCurrency, destinationCurrency):
-    return {'result': result}
+    return {'result': 245}
 
 
 @app.route('/')
-def handle_conversion_request():
-    data = fetch_currency_data()
+async def handle_conversion_request():
+    data = await fetch_currency_data()
     return JsonResponse(convert_currency(data["sourceCurrency"], data["destinationCurrency"]))
 
 
